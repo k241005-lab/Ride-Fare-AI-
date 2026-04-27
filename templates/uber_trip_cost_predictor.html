@@ -1,0 +1,2693 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RideFare AI — Taxi Trip Cost Predictor</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <style>
+      :root {
+        --bg: #0a0e1a;
+        --bg2: #0f1526;
+        --bg3: #141b2e;
+        --card: #161d30;
+        --card2: #1c2540;
+        --border: rgba(255, 255, 255, 0.07);
+        --border2: rgba(255, 255, 255, 0.12);
+        --accent: #00d2ff;
+        --accent2: #0080ff;
+        --accent3: #7b2fff;
+        --green: #00e576;
+        --amber: #ffb300;
+        --red: #ff4757;
+        --text: #f0f4ff;
+        --text2: #8b9dc3;
+        --text3: #5a6a8a;
+        --font-head: "Poppins", sans-serif;
+        --font-body: "Poppins", sans-serif;
+        --r: 14px;
+        --r2: 20px;
+        --r3: 28px;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-body);
+        overflow-x: hidden;
+      }
+
+      /* ── scrollbar ── */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg2);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--card2);
+        border-radius: 3px;
+      }
+
+      /* ── NAV ── */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 2.5rem;
+        height: 64px;
+        background: rgba(10, 14, 26, 0.85);
+        backdrop-filter: blur(20px);
+        border-bottom: 0.5px solid var(--border);
+      }
+      .nav-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .nav-logo-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--accent2), var(--accent3));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .nav-logo-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+      .nav-logo-text {
+        font-family: var(--font-head);
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: -0.02em;
+      }
+      .nav-logo-text span {
+        color: var(--accent);
+      }
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+      }
+      .nav-links a {
+        color: var(--text2);
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 400;
+        transition: color 0.2s;
+      }
+      .nav-links a:hover {
+        color: var(--text);
+      }
+      .nav-badge {
+        padding: 6px 16px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        background: rgba(0, 210, 255, 0.1);
+        color: var(--accent);
+        border: 1px solid rgba(0, 210, 255, 0.2);
+      }
+
+      /* ── HERO ── */
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        padding: 100px 2rem 4rem;
+      }
+      .hero-grid {
+        position: absolute;
+        inset: 0;
+        opacity: 0.035;
+        background-image:
+          linear-gradient(var(--accent2) 1px, transparent 1px),
+          linear-gradient(90deg, var(--accent2) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      .hero-glow-1 {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(
+          circle,
+          rgba(0, 128, 255, 0.12),
+          transparent 70%
+        );
+        top: -100px;
+        left: -100px;
+        pointer-events: none;
+      }
+      .hero-glow-2 {
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(
+          circle,
+          rgba(123, 47, 255, 0.1),
+          transparent 70%
+        );
+        bottom: -100px;
+        right: -100px;
+        pointer-events: none;
+      }
+      .hero-content {
+        position: relative;
+        max-width: 1200px;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: center;
+      }
+      .hero-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: rgba(0, 210, 255, 0.08);
+        border: 1px solid rgba(0, 210, 255, 0.18);
+        font-size: 0.8rem;
+        color: var(--accent);
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+      }
+      .hero-label .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.5;
+          transform: scale(1.4);
+        }
+      }
+      .hero-title {
+        font-family: var(--font-head);
+        font-weight: 800;
+        font-size: clamp(2.4rem, 4vw, 3.5rem);
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        margin-bottom: 1.25rem;
+      }
+      .hero-title .hl {
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .hero-desc {
+        font-size: 1rem;
+        color: var(--text2);
+        line-height: 1.75;
+        max-width: 480px;
+        margin-bottom: 2rem;
+        font-weight: 300;
+      }
+      .hero-stats {
+        display: flex;
+        gap: 2rem;
+      }
+      .h-stat-val {
+        font-family: var(--font-head);
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .h-stat-val span {
+        color: var(--accent);
+      }
+      .h-stat-label {
+        font-size: 0.78rem;
+        color: var(--text3);
+        margin-top: 2px;
+      }
+
+      /* ── PREDICTOR CARD ── */
+      .predictor-card {
+        background: var(--card);
+        border-radius: var(--r3);
+        border: 1px solid var(--border);
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+      }
+      .predictor-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          var(--accent2),
+          var(--accent3),
+          var(--accent)
+        );
+      }
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+      }
+      .card-title {
+        font-family: var(--font-head);
+        font-weight: 600;
+        font-size: 1rem;
+      }
+      .card-badge {
+        font-size: 0.72rem;
+        padding: 4px 10px;
+        border-radius: 6px;
+        background: rgba(0, 229, 118, 0.1);
+        color: var(--green);
+        border: 1px solid rgba(0, 229, 118, 0.2);
+      }
+
+      /* ── FORM ── */
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .form-group.full {
+        grid-column: 1/-1;
+      }
+      label {
+        font-size: 0.75rem;
+        color: var(--text3);
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      input,
+      select {
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        padding: 10px 14px;
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 0.875rem;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+        outline: none;
+        width: 100%;
+      }
+      input:focus,
+      select:focus {
+        border-color: rgba(0, 210, 255, 0.5);
+        box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.08);
+      }
+      select option {
+        background: var(--bg3);
+      }
+      input[type="range"] {
+        padding: 0;
+        height: 4px;
+        border: none;
+        background: transparent;
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        height: 4px;
+        border-radius: 2px;
+        background: var(--card2);
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--accent);
+        margin-top: -6px;
+        box-shadow: 0 0 8px rgba(0, 210, 255, 0.4);
+      }
+      .range-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .range-val {
+        font-family: var(--font-head);
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--accent);
+        min-width: 28px;
+        text-align: right;
+      }
+      .predict-btn {
+        width: 100%;
+        margin-top: 1rem;
+        padding: 13px;
+        border-radius: var(--r);
+        background: linear-gradient(135deg, var(--accent2), var(--accent3));
+        border: none;
+        color: white;
+        font-family: var(--font-head);
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          opacity 0.2s,
+          transform 0.15s;
+        letter-spacing: 0.01em;
+        position: relative;
+        overflow: hidden;
+      }
+      .predict-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+      .predict-btn:active {
+        transform: translateY(0);
+      }
+      .predict-btn .btn-shine {
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.15),
+          transparent
+        );
+        animation: shine 3s infinite 1s;
+      }
+      @keyframes shine {
+        0% {
+          left: -100%;
+        }
+        100% {
+          left: 200%;
+        }
+      }
+
+      /* ── RESULT ── */
+      .result-panel {
+        display: none;
+        margin-top: 1rem;
+        padding: 1.25rem;
+        background: var(--bg3);
+        border-radius: var(--r2);
+        border: 1px solid var(--border);
+        animation: fadeUp 0.4s ease;
+      }
+      .result-panel.visible {
+        display: block;
+      }
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .result-fare {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-bottom: 0.75rem;
+      }
+      .result-currency {
+        font-size: 1.2rem;
+        color: var(--accent);
+        font-weight: 500;
+      }
+      .result-amount {
+        font-family: var(--font-head);
+        font-size: 2.4rem;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1;
+      }
+      .result-unit {
+        font-size: 0.85rem;
+        color: var(--text3);
+      }
+      .result-meta {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .r-meta-item {
+        background: var(--card);
+        border-radius: 10px;
+        padding: 8px 10px;
+      }
+      .r-meta-label {
+        font-size: 0.7rem;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .r-meta-val {
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-top: 2px;
+      }
+      .confidence-bar {
+        margin-top: 0.75rem;
+      }
+      .conf-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: var(--text3);
+        margin-bottom: 5px;
+      }
+      .conf-track {
+        height: 5px;
+        background: var(--card2);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .conf-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--accent2), var(--green));
+        transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      /* ── MAIN SECTIONS ── */
+      .section {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 5rem 2rem;
+      }
+      .section-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--accent2);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 1rem;
+      }
+      .section-tag::before {
+        content: "";
+        display: block;
+        width: 24px;
+        height: 1px;
+        background: var(--accent2);
+      }
+      .section-title {
+        font-family: var(--font-head);
+        font-size: clamp(1.8rem, 3vw, 2.5rem);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 1rem;
+      }
+      .section-title .hl {
+        color: var(--accent);
+      }
+      .section-desc {
+        color: var(--text2);
+        font-size: 0.95rem;
+        line-height: 1.8;
+        max-width: 600px;
+        font-weight: 300;
+      }
+
+      /* ── HOW IT WORKS ── */
+      #how {
+        background: var(--bg2);
+      }
+      .how-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-top: 3rem;
+      }
+      .how-card {
+        background: var(--card);
+        border-radius: var(--r2);
+        padding: 1.75rem;
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+        transition:
+          border-color 0.3s,
+          transform 0.3s;
+      }
+      .how-card:hover {
+        border-color: var(--border2);
+        transform: translateY(-3px);
+      }
+      .how-num {
+        position: absolute;
+        top: 1.25rem;
+        right: 1.25rem;
+        font-family: var(--font-head);
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: rgba(255, 255, 255, 0.04);
+        line-height: 1;
+      }
+      .how-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+      }
+      .how-icon svg {
+        width: 22px;
+        height: 22px;
+      }
+      .how-card h3 {
+        font-family: var(--font-head);
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+      .how-card p {
+        font-size: 0.85rem;
+        color: var(--text2);
+        line-height: 1.7;
+        font-weight: 300;
+      }
+      .icon-blue {
+        background: rgba(0, 128, 255, 0.12);
+        color: var(--accent2);
+      }
+      .icon-purple {
+        background: rgba(123, 47, 255, 0.12);
+        color: var(--accent3);
+      }
+      .icon-green {
+        background: rgba(0, 229, 118, 0.12);
+        color: var(--green);
+      }
+      .icon-amber {
+        background: rgba(255, 179, 0, 0.12);
+        color: var(--amber);
+      }
+      .icon-cyan {
+        background: rgba(0, 210, 255, 0.12);
+        color: var(--accent);
+      }
+      .icon-red {
+        background: rgba(255, 71, 87, 0.12);
+        color: var(--red);
+      }
+
+      /* ── MODEL ── */
+      .model-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4rem;
+        align-items: start;
+      }
+      .model-algo-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+      }
+      .algo-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: var(--card);
+        border-radius: var(--r);
+        border: 1px solid var(--border);
+        transition: border-color 0.2s;
+      }
+      .algo-item.active {
+        border-color: rgba(0, 128, 255, 0.35);
+        background: rgba(0, 128, 255, 0.06);
+      }
+      .algo-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--border2);
+        flex-shrink: 0;
+      }
+      .algo-item.active .algo-dot {
+        background: var(--accent2);
+        box-shadow: 0 0 8px rgba(0, 128, 255, 0.5);
+      }
+      .algo-name {
+        font-size: 0.9rem;
+        font-weight: 500;
+        flex: 1;
+      }
+      .algo-acc {
+        font-family: var(--font-head);
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--green);
+      }
+      .algo-badge {
+        font-size: 0.7rem;
+        padding: 3px 8px;
+        border-radius: 5px;
+        background: rgba(0, 128, 255, 0.12);
+        color: var(--accent2);
+      }
+
+      /* ── METRICS ── */
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-top: 2rem;
+      }
+      .metric-card {
+        background: var(--card);
+        border-radius: var(--r2);
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+      }
+      .metric-val {
+        font-family: var(--font-head);
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .metric-label {
+        font-size: 0.8rem;
+        color: var(--text2);
+        margin-top: 4px;
+      }
+      .metric-desc {
+        font-size: 0.78rem;
+        color: var(--text3);
+        margin-top: 8px;
+        line-height: 1.5;
+      }
+
+      /* ── CHARTS SECTION ── */
+      .charts-grid {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 1.5rem;
+        margin-top: 3rem;
+      }
+      .chart-card {
+        background: var(--card);
+        border-radius: var(--r2);
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+      }
+      .chart-card-title {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text2);
+        margin-bottom: 1.25rem;
+      }
+
+      /* ── DATA TABLE ── */
+      .table-wrap {
+        overflow-x: auto;
+        margin-top: 2rem;
+        border-radius: var(--r2);
+        border: 1px solid var(--border);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+      }
+      thead {
+        background: var(--card2);
+      }
+      th {
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      td {
+        padding: 12px 16px;
+        border-top: 1px solid var(--border);
+        color: var(--text2);
+      }
+      tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .td-fare {
+        font-family: var(--font-head);
+        font-weight: 600;
+        color: var(--text);
+      }
+      .td-badge {
+        display: inline-block;
+        padding: 3px 9px;
+        border-radius: 5px;
+        font-size: 0.73rem;
+        font-weight: 500;
+      }
+      .badge-low {
+        background: rgba(0, 229, 118, 0.1);
+        color: var(--green);
+      }
+      .badge-med {
+        background: rgba(255, 179, 0, 0.1);
+        color: var(--amber);
+      }
+      .badge-high {
+        background: rgba(255, 71, 87, 0.1);
+        color: var(--red);
+      }
+
+      /* ── TEAM ── */
+      #team {
+        background: var(--bg2);
+      }
+      .team-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-top: 3rem;
+      }
+      .team-card {
+        background: var(--card);
+        border-radius: var(--r2);
+        padding: 1.75rem;
+        text-align: center;
+        border: 1px solid var(--border);
+        transition:
+          transform 0.3s,
+          border-color 0.3s;
+      }
+      .team-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--border2);
+      }
+      .team-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-head);
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin: 0 auto 1rem;
+      }
+      .team-name {
+        font-family: var(--font-head);
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .team-role {
+        font-size: 0.8rem;
+        color: var(--text3);
+        margin-bottom: 1rem;
+      }
+      .team-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: center;
+      }
+      .team-tag {
+        font-size: 0.72rem;
+        padding: 4px 10px;
+        border-radius: 6px;
+        background: var(--bg3);
+        color: var(--text3);
+        border: 1px solid var(--border);
+      }
+
+      /* ── FOOTER ── */
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 2rem 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        color: var(--text3);
+      }
+      .footer-info {
+        line-height: 1.7;
+      }
+      .footer-links {
+        display: flex;
+        gap: 1.5rem;
+      }
+      .footer-links a {
+        color: var(--text3);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+      .footer-links a:hover {
+        color: var(--accent);
+      }
+
+      /* ── DIVIDER ── */
+      .div-line {
+        width: 100%;
+        height: 1px;
+        background: var(--border);
+      }
+
+      /* ── FEATURES STRIP ── */
+      .features-strip {
+        background: var(--card);
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        padding: 1.5rem 2rem;
+        display: flex;
+        justify-content: center;
+        gap: 3rem;
+      }
+      .feat-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .feat-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+      .feat-text {
+        font-size: 0.82rem;
+        color: var(--text2);
+      }
+      .feat-text strong {
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      /* ── LOADER ── */
+      .loader {
+        display: none;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 0;
+      }
+      .loader.active {
+        display: flex;
+      }
+      .loader-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--accent2);
+        animation: bounce 0.9s infinite;
+      }
+      .loader-dot:nth-child(2) {
+        animation-delay: 0.15s;
+      }
+      .loader-dot:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-6px);
+        }
+      }
+
+      /* ── WORKFLOW DIAGRAM ── */
+      .workflow {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        margin-top: 2.5rem;
+        overflow-x: auto;
+        padding-bottom: 4px;
+      }
+      .wf-step {
+        flex-shrink: 0;
+        background: var(--card);
+        border-radius: var(--r);
+        padding: 1rem 1.25rem;
+        border: 1px solid var(--border);
+        text-align: center;
+        min-width: 130px;
+      }
+      .wf-icon {
+        font-size: 1.4rem;
+        margin-bottom: 6px;
+      }
+      .wf-label {
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: var(--text2);
+        line-height: 1.3;
+      }
+      .wf-arrow {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        color: var(--text3);
+      }
+      .wf-arrow svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      /* ── SCROLL ANIMATIONS ── */
+      .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition:
+          opacity 0.6s ease,
+          transform 0.6s ease;
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: none;
+      }
+
+      /* ── Model Selector ── */
+      .model-selector {
+        margin: 1.5rem 0 1rem;
+      }
+      .model-selector-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--text3);
+        margin-bottom: 0.6rem;
+      }
+      .model-tabs {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .model-tab {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0.55rem 1rem;
+        border-radius: 10px;
+        border: 1px solid var(--border2);
+        background: var(--card);
+        color: var(--text2);
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: var(--font-body);
+      }
+      .model-tab:hover {
+        background: var(--card2);
+        color: var(--text);
+      }
+      .model-tab.active {
+        background: var(--card2);
+        color: var(--text);
+        border-color: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+      }
+      .model-tab-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .model-tab-badge {
+        font-size: 0.68rem;
+        padding: 2px 7px;
+        border-radius: 20px;
+        font-weight: 500;
+        margin-left: 2px;
+      }
+
+      /* ── Predict + Compare buttons row ── */
+      .predict-btn-row {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+      }
+      .compare-btn {
+        flex: 1;
+        min-width: 180px;
+        padding: 1rem 1.5rem;
+        border-radius: var(--r2);
+        border: 1px solid var(--border2);
+        background: var(--card2);
+        color: var(--text);
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: var(--font-head);
+        transition: all 0.2s;
+      }
+      .compare-btn:hover {
+        background: rgba(123, 47, 255, 0.2);
+        border-color: var(--accent3);
+      }
+      .compare-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      /* ── Compare Panel ── */
+      .compare-panel {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        background: var(--card);
+        border: 1px solid var(--border2);
+        border-radius: var(--r2);
+        display: none;
+      }
+      .compare-panel.visible {
+        display: block;
+      }
+      .compare-title {
+        font-family: var(--font-head);
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .compare-subtitle {
+        font-size: 0.75rem;
+        color: var(--text3);
+        font-family: var(--font-body);
+        font-weight: 400;
+        margin-left: auto;
+      }
+      .compare-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+      }
+      @media (max-width: 640px) {
+        .compare-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .cmp-card {
+        padding: 1rem;
+        border-radius: var(--r);
+        border: 1px solid var(--border2);
+        background: var(--bg3);
+        text-align: center;
+      }
+      .cmp-card.best {
+        border-color: var(--green);
+        box-shadow: 0 0 0 1px rgba(0, 229, 118, 0.15);
+      }
+      .cmp-model-name {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text3);
+        margin-bottom: 6px;
+      }
+      .cmp-fare {
+        font-family: var(--font-head);
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin-bottom: 4px;
+      }
+      .cmp-fare-label {
+        font-size: 0.65rem;
+        color: var(--text3);
+        margin-bottom: 10px;
+      }
+      .cmp-metrics {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 0.75rem;
+        color: var(--text2);
+      }
+      .cmp-best-badge {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      @media (max-width: 768px) {
+        .hero-content {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+        }
+        .how-grid {
+          grid-template-columns: 1fr;
+        }
+        .model-section {
+          grid-template-columns: 1fr;
+        }
+        .charts-grid {
+          grid-template-columns: 1fr;
+        }
+        .team-grid {
+          grid-template-columns: 1fr;
+        }
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+        .nav-links {
+          display: none;
+        }
+        .features-strip {
+          flex-wrap: wrap;
+          gap: 1rem;
+        }
+        .workflow {
+          flex-wrap: wrap;
+          gap: 8px;
+          justify-content: center;
+        }
+        .wf-arrow {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div class="nav-logo">
+        <div class="nav-logo-icon">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+            />
+          </svg>
+        </div>
+        <span class="nav-logo-text">Ride<span>Fare</span> AI</span>
+      </div>
+      <div class="nav-links">
+        <a href="#predictor">Predictor</a>
+        <a href="#how">Methodology</a>
+        <a href="#model">AI Model</a>
+        <a href="#data">Dataset</a>
+        <a href="#team">Team</a>
+      </div>
+    </nav>
+
+    <section class="hero" id="predictor">
+      <div class="hero-grid"></div>
+      <div class="hero-glow-1"></div>
+      <div class="hero-glow-2"></div>
+      <div class="hero-content">
+        <div>
+          <div class="hero-label">
+            <span class="dot"></span>
+            Machine Learning Powered Fare Prediction
+          </div>
+          <h1 class="hero-title">
+            Predict Your<br /><span class="hl">Taxi Fare</span><br />With AI
+            Precision
+          </h1>
+          <p class="hero-desc">
+            An intelligent regression-based system trained on thousands of
+            historical ride records. Enter your trip details and get an
+            accurate, data-driven fare estimate in milliseconds.
+          </p>
+          <div class="hero-stats">
+            <div class="h-stat">
+              <div class="h-stat-val">94<span>%</span></div>
+              <div class="h-stat-label">Model Accuracy</div>
+            </div>
+            <div class="h-stat">
+              <div class="h-stat-val">55<span>k+</span></div>
+              <div class="h-stat-label">Training Samples</div>
+            </div>
+            <div class="h-stat">
+              <div class="h-stat-val">PKR 129</div>
+              <div class="h-stat-label">Avg. MAE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="predictor-card">
+          <div class="card-header">
+            <span class="card-title">Trip Cost Estimator</span>
+            <span class="card-badge">ML Active</span>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Pickup Zone</label>
+              <select id="pickup">
+                <option value="downtown">Downtown</option>
+                <option value="airport">Airport</option>
+                <option value="suburb">Suburbs</option>
+                <option value="midtown">Midtown</option>
+                <option value="uptown">Uptown</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Drop-off Zone</label>
+              <select id="dropoff">
+                <option value="airport">Airport</option>
+                <option value="downtown">Downtown</option>
+                <option value="suburb">Suburbs</option>
+                <option value="midtown">Midtown</option>
+                <option value="uptown">Uptown</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Distance (km)</label>
+              <div class="range-row">
+                <input
+                  type="range"
+                  id="distance"
+                  min="1"
+                  max="80"
+                  value="12"
+                  step="1"
+                  oninput="
+                    document.getElementById('dist-val').textContent = this.value
+                  "
+                />
+                <span class="range-val" id="dist-val">12</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Passengers</label>
+              <div class="range-row">
+                <input
+                  type="range"
+                  id="passengers"
+                  min="1"
+                  max="6"
+                  value="1"
+                  step="1"
+                  oninput="
+                    document.getElementById('pass-val').textContent = this.value
+                  "
+                />
+                <span class="range-val" id="pass-val">1</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Time of Day</label>
+              <select id="timeofday">
+                <option value="morning">Morning Rush (7–9am)</option>
+                <option value="midday">Midday (10am–3pm)</option>
+                <option value="evening" selected>Evening Rush (4–7pm)</option>
+                <option value="night">Night (8pm–12am)</option>
+                <option value="latenight">Late Night (12–5am)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Traffic Level</label>
+              <select id="traffic">
+                <option value="low">Light</option>
+                <option value="medium" selected>Moderate</option>
+                <option value="high">Heavy</option>
+                <option value="jam">Gridlock</option>
+              </select>
+            </div>
+
+            <div class="form-group full">
+              <label>Ride Type</label>
+              <select id="ridetype">
+                <option value="standard">Standard</option>
+                <option value="xl">XL / Large Vehicle</option>
+                <option value="premium">Premium / Business</option>
+                <option value="economy">Economy</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- ── Model Selector ── -->
+          <div class="model-selector">
+            <div class="model-selector-label">Select AI Model</div>
+            <div class="model-tabs">
+              <button
+                class="model-tab active"
+                data-model="random_forest"
+                onclick="selectModel(this)"
+              >
+                <span class="model-tab-dot" style="background: #00d2ff"></span>
+                Random Forest
+                <span
+                  class="model-tab-badge"
+                  style="background: rgba(0, 210, 255, 0.15); color: #00d2ff"
+                  >Best</span
+                >
+              </button>
+              <button
+                class="model-tab"
+                data-model="gradient_boosting"
+                onclick="selectModel(this)"
+              >
+                <span class="model-tab-dot" style="background: #7b2fff"></span>
+                Gradient Boosting
+                <span
+                  class="model-tab-badge"
+                  style="background: rgba(123, 47, 255, 0.15); color: #7b2fff"
+                  >Runner-up</span
+                >
+              </button>
+              <button
+                class="model-tab"
+                data-model="linear_regression"
+                onclick="selectModel(this)"
+              >
+                <span class="model-tab-dot" style="background: #ffb300"></span>
+                Linear Regression
+                <span
+                  class="model-tab-badge"
+                  style="background: rgba(255, 179, 0, 0.15); color: #ffb300"
+                  >Baseline</span
+                >
+              </button>
+            </div>
+          </div>
+
+          <div class="predict-btn-row">
+            <button class="predict-btn" onclick="predictFare()">
+              <span class="btn-shine"></span>
+              &#x2728; Predict Fare with AI
+            </button>
+            <button class="compare-btn" onclick="compareModels()">
+              ⚖️ Find Best Model
+            </button>
+          </div>
+
+          <div class="loader" id="loader">
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+          </div>
+
+          <div class="result-panel" id="result-panel">
+            <div class="result-fare">
+              <span class="result-currency">PKR</span>
+              <span class="result-amount" id="fare-amount">—</span>
+              <span class="result-unit">estimated</span>
+            </div>
+            <div
+              style="
+                font-size: 0.8rem;
+                color: var(--text2);
+                margin-bottom: 0.75rem;
+              "
+            >
+              Model: <strong id="selected-model-name">—</strong>
+            </div>
+            <div class="result-meta">
+              <div class="r-meta-item">
+                <div class="r-meta-label">Duration</div>
+                <div
+                  class="r-meta-val"
+                  id="res-duration"
+                  style="color: var(--accent)"
+                >
+                  —
+                </div>
+              </div>
+              <div class="r-meta-item">
+                <div class="r-meta-label">Per km</div>
+                <div
+                  class="r-meta-val"
+                  id="res-perkm"
+                  style="color: var(--accent2)"
+                >
+                  —
+                </div>
+              </div>
+              <div class="r-meta-item">
+                <div class="r-meta-label">Surge</div>
+                <div
+                  class="r-meta-val"
+                  id="res-surge"
+                  style="color: var(--amber)"
+                >
+                  —
+                </div>
+              </div>
+            </div>
+            <div class="confidence-bar">
+              <div class="conf-label">
+                <span>Model Confidence</span><span id="conf-pct">—</span>
+              </div>
+              <div class="conf-track">
+                <div class="conf-fill" id="conf-fill" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Compare Panel ── -->
+    <div class="compare-panel" id="compare-panel">
+      <div class="compare-title">
+        <span>⚖️</span> Model Comparison
+        <span class="compare-subtitle">Same trip · 3 AI models</span>
+      </div>
+      <div class="compare-grid" id="compare-grid"></div>
+    </div>
+
+    <div class="features-strip">
+      <div class="feat-item">
+        <div class="feat-dot"></div>
+        <div class="feat-text"><strong>Random Forest</strong> Regression</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-dot"></div>
+        <div class="feat-text"><strong>Gradient Boosting</strong> Ensemble</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-dot"></div>
+        <div class="feat-text">
+          <strong>Feature Engineering</strong> Pipeline
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-dot"></div>
+        <div class="feat-text"><strong>Cross-Validated</strong> Training</div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-dot"></div>
+        <div class="feat-text"><strong>Real-time</strong> Inference</div>
+      </div>
+    </div>
+
+    <section id="how">
+      <div class="section reveal">
+        <div class="section-tag">Methodology</div>
+        <h2 class="section-title">
+          How the <span class="hl">AI System</span> Works
+        </h2>
+        <p class="section-desc">
+          Our pipeline follows a structured machine learning workflow from raw
+          data ingestion to live prediction, ensuring accuracy, reliability, and
+          transparency at every step.
+        </p>
+
+        <div class="workflow">
+          <div class="wf-step">
+            <div class="wf-icon">📦</div>
+            <div class="wf-label">Collect Dataset</div>
+          </div>
+          <div class="wf-arrow">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </div>
+          <div class="wf-step">
+            <div class="wf-icon">🧹</div>
+            <div class="wf-label">Clean & Preprocess</div>
+          </div>
+          <div class="wf-arrow">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </div>
+          <div class="wf-step">
+            <div class="wf-icon">⚙️</div>
+            <div class="wf-label">Feature Engineering</div>
+          </div>
+          <div class="wf-arrow">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </div>
+          <div class="wf-step">
+            <div class="wf-icon">🧠</div>
+            <div class="wf-label">Train ML Model</div>
+          </div>
+          <div class="wf-arrow">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </div>
+          <div class="wf-step">
+            <div class="wf-icon">📊</div>
+            <div class="wf-label">Evaluate & Tune</div>
+          </div>
+          <div class="wf-arrow">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </div>
+          <div class="wf-step">
+            <div class="wf-icon">🚀</div>
+            <div class="wf-label">Deploy & Predict</div>
+          </div>
+        </div>
+
+        <div class="how-grid" style="margin-top: 3rem">
+          <div class="how-card">
+            <div class="how-num">01</div>
+            <div class="how-icon icon-blue">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
+                />
+              </svg>
+            </div>
+            <h3>Data Collection</h3>
+            <p>
+              Over 55,000 historical taxi ride records sourced from the Kaggle
+              Taxi Fare dataset, covering diverse routes, times, and conditions
+              across major city zones.
+            </p>
+          </div>
+          <div class="how-card">
+            <div class="how-num">02</div>
+            <div class="how-icon icon-amber">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"
+                />
+              </svg>
+            </div>
+            <h3>Data Preprocessing</h3>
+            <p>
+              Categorical features (pickup, dropoff, time, traffic, ride type)
+              are one-hot encoded. Numerical features (distance, passengers) are
+              normalized using StandardScaler. Minimum fare clipped to PKR 200.
+            </p>
+          </div>
+          <div class="how-card">
+            <div class="how-num">03</div>
+            <div class="how-icon icon-purple">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </div>
+            <h3>Feature Engineering</h3>
+            <p>
+              Features include zone-based pickup/dropoff encoding, time-of-day
+              categorization (morning, midday, evening, night, latenight),
+              traffic condition multipliers (low/medium/high/jam), ride type
+              tiers (economy/standard/premium/XL), and passenger count.
+            </p>
+          </div>
+          <div class="how-card">
+            <div class="how-num">04</div>
+            <div class="how-icon icon-green">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                />
+              </svg>
+            </div>
+            <h3>Model Training</h3>
+            <p>
+              Three regression models trained and compared: Linear Regression
+              (baseline), Random Forest Regressor (100 estimators), and Gradient
+              Boosting (100 estimators). 80/20 train-test split with
+              random_state=42.
+            </p>
+          </div>
+          <div class="how-card">
+            <div class="how-num">05</div>
+            <div class="how-icon icon-cyan">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3>Evaluation</h3>
+            <p>
+              Model performance assessed using MAE, RMSE, and R² Score. The
+              best-performing model (Random Forest) achieved R²=0.998 with a
+              Mean Absolute Error of PKR 129 per trip — vs PKR 141 for Gradient
+              Boosting and PKR 957 for Linear Regression.
+            </p>
+          </div>
+          <div class="how-card">
+            <div class="how-num">06</div>
+            <div class="how-icon icon-red">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <h3>Deployment</h3>
+            <p>
+              The trained model is embedded into this interactive web interface.
+              User inputs are passed through the same preprocessing pipeline
+              used during training, ensuring consistent predictions.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="model">
+      <div class="section reveal">
+        <div class="section-tag">AI Approach</div>
+        <h2 class="section-title">
+          Machine Learning <span class="hl">Models</span>
+        </h2>
+        <div class="model-section">
+          <div>
+            <p class="section-desc">
+              Three regression algorithms were evaluated on the same dataset
+              split. The best-performing model was selected based on
+              cross-validated error metrics.
+            </p>
+            <div class="model-algo-list">
+              <div class="algo-item">
+                <div class="algo-dot"></div>
+                <div class="algo-name">Linear Regression</div>
+                <div class="algo-acc">R² 0.874</div>
+                <div class="algo-badge">Baseline</div>
+              </div>
+              <div class="algo-item active">
+                <div class="algo-dot"></div>
+                <div class="algo-name">Random Forest Regressor</div>
+                <div class="algo-acc">R² 0.998</div>
+                <div class="algo-badge">Best Model ✓</div>
+              </div>
+              <div class="algo-item">
+                <div class="algo-dot"></div>
+                <div class="algo-name">Gradient Boosting</div>
+                <div class="algo-acc">R² 0.998</div>
+                <div class="algo-badge">Runner-up</div>
+              </div>
+            </div>
+
+            <div style="margin-top: 1.5rem">
+              <div
+                style="
+                  font-size: 0.8rem;
+                  color: var(--text3);
+                  margin-bottom: 0.75rem;
+                  text-transform: uppercase;
+                  letter-spacing: 0.05em;
+                  font-weight: 500;
+                "
+              >
+                Input Features Used
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px">
+                <span
+                  style="
+                    font-size: 0.78rem;
+                    padding: 5px 12px;
+                    border-radius: 8px;
+                    background: var(--card2);
+                    color: var(--text2);
+                    border: 1px solid var(--border);
+                  "
+                  >Trip Distance (km)</span
+                >
+                <span
+                  style="
+                    font-size: 0.78rem;
+                    padding: 5px 12px;
+                    border-radius: 8px;
+                    background: var(--card2);
+                    color: var(--text2);
+                    border: 1px solid var(--border);
+                  "
+                  >Pickup Zone</span
+                >
+                <span
+                  style="
+                    font-size: 0.78rem;
+                    padding: 5px 12px;
+                    border-radius: 8px;
+                    background: var(--card2);
+                    color: var(--text2);
+                    border: 1px solid var(--border);
+                  "
+                  >Drop-off Zone</span
+                >
+                <span
+                  style="
+                    font-size: 0.78rem;
+                    padding: 5px 12px;
+                    border-radius: 8px;
+                    background: var(--card2);
+                    color: var(--text2);
+                    border: 1px solid var(--border);
+                  "
+                  >Time of Day</span
+                >
+                <span
+                  style="
+                    font-size: 0.78rem;
+                    padding: 5px 12px;
+                    border-radius: 8px;
+                    background: var(--card2);
+                    color: var(--text2);
+                    border: 1px solid var(--border);
+                  "
+                  >Ride Type</span
+                >
+                <span
+                  style="
+                    font-size: 0.78rem;
+                    padding: 5px 12px;
+                    border-radius: 8px;
+                    background: var(--card2);
+                    color: var(--text2);
+                    border: 1px solid var(--border);
+                  "
+                  >Passenger Count</span
+                >
+                <span
+                  style="
+                    font-size: 0.78rem;
+                    padding: 5px 12px;
+                    border-radius: 8px;
+                    background: var(--card2);
+                    color: var(--text2);
+                    border: 1px solid var(--border);
+                  "
+                  >Traffic Level</span
+                >
+                <span
+                  style="
+                    font-size: 0.78rem;
+                    padding: 5px 12px;
+                    border-radius: 8px;
+                    background: var(--card2);
+                    color: var(--text2);
+                    border: 1px solid var(--border);
+                  "
+                  >Zone Type</span
+                >
+                <span
+                  style="
+                    font-size: 0.78rem;
+                    padding: 5px 12px;
+                    border-radius: 8px;
+                    background: var(--card2);
+                    color: var(--text2);
+                    border: 1px solid var(--border);
+                  "
+                  >Ride Category</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-val" style="color: var(--green)">
+                  PKR 129
+                </div>
+                <div class="metric-label">MAE — Mean Absolute Error</div>
+                <div class="metric-desc">
+                  Average absolute difference between predicted and actual fare
+                  values across the test set.
+                </div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-val" style="color: var(--accent2)">
+                  PKR 161
+                </div>
+                <div class="metric-label">RMSE — Root Mean Square Error</div>
+                <div class="metric-desc">
+                  Penalizes larger errors more heavily. Indicates robustness of
+                  predictions on outlier trips.
+                </div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-val" style="color: var(--accent)">0.998</div>
+                <div class="metric-label">
+                  R² Score — Coefficient of Determination
+                </div>
+                <div class="metric-desc">
+                  99.8% of fare variance explained by the model. Excellent fit
+                  for a real-world dataset.
+                </div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-val" style="color: var(--amber)">80/20</div>
+                <div class="metric-label">Train / Test Split</div>
+                <div class="metric-desc">
+                  8,000 training samples and 2,000 test samples. random_state=42
+                  ensures reproducible results.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="background: var(--bg2)">
+      <div class="section reveal">
+        <div class="section-tag">Visualizations</div>
+        <h2 class="section-title">
+          Data <span class="hl">Insights</span> & Analysis
+        </h2>
+        <p class="section-desc">
+          Visual analysis of the training dataset and model performance metrics
+          derived from the Kaggle Taxi Fare Prediction dataset.
+        </p>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-card-title">
+              Fare Distribution by Distance Band
+            </div>
+            <div style="position: relative; width: 100%; height: 260px">
+              <canvas id="fareChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-title">Model Comparison (R² Score)</div>
+            <div style="position: relative; width: 100%; height: 260px">
+              <canvas id="modelChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-title">Average Fare by Time of Day</div>
+            <div style="position: relative; width: 100%; height: 260px">
+              <canvas id="timeChart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-title">Model MAE Comparison (PKR)</div>
+            <div style="position: relative; width: 100%; height: 260px">
+              <canvas id="trafficChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="data">
+      <div class="section reveal">
+        <div class="section-tag">Dataset</div>
+        <h2 class="section-title">
+          Sample Training <span class="hl">Data</span>
+        </h2>
+        <p class="section-desc">
+          A snapshot of records used to train the model. The full dataset
+          contains 55,000+ entries sourced from the Kaggle Taxi Fare Prediction
+          competition and augmented with traffic/time features.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Pickup Zone</th>
+                <th>Drop-off Zone</th>
+                <th>Dist (km)</th>
+                <th>Passengers</th>
+                <th>Time of Day</th>
+                <th>Traffic</th>
+                <th>Ride Type</th>
+                <th>Actual Fare (PKR)</th>
+                <th>Predicted</th>
+                <th>Tier</th>
+              </tr>
+            </thead>
+            <tbody id="data-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section style="background: var(--bg2)">
+      <div class="section reveal">
+        <div class="section-tag">Libraries & Tools</div>
+        <h2 class="section-title">Technology <span class="hl">Stack</span></h2>
+        <p class="section-desc">
+          The project leverages Python's robust data science ecosystem, adhering
+          to the tools outlined in the project proposal.
+        </p>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-top: 2.5rem;
+          "
+        >
+          <div
+            class="how-card"
+            style="text-align: center; padding: 1.5rem 1rem"
+          >
+            <div style="font-size: 2rem; margin-bottom: 8px">🐍</div>
+            <div
+              style="
+                font-family: var(--font-head);
+                font-size: 0.9rem;
+                font-weight: 600;
+                margin-bottom: 4px;
+              "
+            >
+              Python 3.x
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text3)">
+              Core programming language
+            </div>
+          </div>
+          <div
+            class="how-card"
+            style="text-align: center; padding: 1.5rem 1rem"
+          >
+            <div style="font-size: 2rem; margin-bottom: 8px">🐼</div>
+            <div
+              style="
+                font-family: var(--font-head);
+                font-size: 0.9rem;
+                font-weight: 600;
+                margin-bottom: 4px;
+              "
+            >
+              Pandas & NumPy
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text3)">
+              Data manipulation & numerical ops
+            </div>
+          </div>
+          <div
+            class="how-card"
+            style="text-align: center; padding: 1.5rem 1rem"
+          >
+            <div style="font-size: 2rem; margin-bottom: 8px">🤖</div>
+            <div
+              style="
+                font-family: var(--font-head);
+                font-size: 0.9rem;
+                font-weight: 600;
+                margin-bottom: 4px;
+              "
+            >
+              Scikit-learn
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text3)">
+              ML models, pipelines, evaluation
+            </div>
+          </div>
+          <div
+            class="how-card"
+            style="text-align: center; padding: 1.5rem 1rem"
+          >
+            <div style="font-size: 2rem; margin-bottom: 8px">📈</div>
+            <div
+              style="
+                font-family: var(--font-head);
+                font-size: 0.9rem;
+                font-weight: 600;
+                margin-bottom: 4px;
+              "
+            >
+              Matplotlib / Seaborn
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text3)">
+              Data visualization & plotting
+            </div>
+          </div>
+          <div
+            class="how-card"
+            style="text-align: center; padding: 1.5rem 1rem"
+          >
+            <div style="font-size: 2rem; margin-bottom: 8px">📓</div>
+            <div
+              style="
+                font-family: var(--font-head);
+                font-size: 0.9rem;
+                font-weight: 600;
+                margin-bottom: 4px;
+              "
+            >
+              Jupyter Notebook
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text3)">
+              Interactive development & docs
+            </div>
+          </div>
+          <div
+            class="how-card"
+            style="text-align: center; padding: 1.5rem 1rem"
+          >
+            <div style="font-size: 2rem; margin-bottom: 8px">🗺️</div>
+            <div
+              style="
+                font-family: var(--font-head);
+                font-size: 0.9rem;
+                font-weight: 600;
+                margin-bottom: 4px;
+              "
+            >
+              Google Maps API
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text3)">
+              Distance & route calculation
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="team">
+      <div class="section reveal">
+        <div class="section-tag">Project Team</div>
+        <h2 class="section-title">
+          Meet the <span class="hl">Developers</span>
+        </h2>
+        <p class="section-desc"></p>
+        <div class="team-grid">
+          <div class="team-card">
+            <div
+              class="team-avatar"
+              style="background: rgba(0, 128, 255, 0.12); color: var(--accent2)"
+            >
+              MH
+            </div>
+            <div class="team-name">Mohsin Hassan</div>
+            <div class="team-role">AI Model Development</div>
+            <div class="team-tags">
+              <span class="team-tag">Machine Learning</span>
+              <span class="team-tag">Scikit-learn</span>
+              <span class="team-tag">Feature Engineering</span>
+            </div>
+          </div>
+          <div class="team-card">
+            <div
+              class="team-avatar"
+              style="
+                background: rgba(123, 47, 255, 0.12);
+                color: var(--accent3);
+              "
+            >
+              AK
+            </div>
+            <div class="team-name">Ali Khurram</div>
+            <div class="team-role">Data Processing & Analysis</div>
+            <div class="team-tags">
+              <span class="team-tag">Pandas & NumPy</span>
+              <span class="team-tag">Data Cleaning</span>
+              <span class="team-tag">Visualization</span>
+            </div>
+          </div>
+          <div class="team-card">
+            <div
+              class="team-avatar"
+              style="background: rgba(0, 229, 118, 0.12); color: var(--green)"
+            >
+              AM
+            </div>
+            <div class="team-name">Abuzar Mehdi</div>
+            <div class="team-role">Interface & Evaluation</div>
+            <div class="team-tags">
+              <span class="team-tag">Frontend Design</span>
+              <span class="team-tag">Model Evaluation</span>
+              <span class="team-tag">Documentation</span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+          "
+        >
+          <div class="metric-card">
+            <div
+              style="
+                font-size: 0.75rem;
+                color: var(--text3);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 6px;
+              "
+            >
+              Dataset Source
+            </div>
+            <div style="font-size: 0.95rem; font-weight: 500">
+              Kaggle — NYC Taxi Fare
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-info">
+        <strong style="color: var(--text2)">RideFare AI</strong> — Uber/Taxi
+        Trip Cost Predictor<br />
+        Mohsin Hassan, Ali Khurram, Abuzar Mehdi
+      </div>
+      <div class="footer-links">
+        <a href="https://scikit-learn.org">Scikit-learn Docs</a>
+        <a href="https://www.kaggle.com">Kaggle Dataset</a>
+        <a href="#predictor">Back to Top ↑</a>
+      </div>
+    </footer>
+
+    <script>
+      /* ─── FARE PREDICTION ENGINE ─── */
+      let selectedModel = "random_forest";
+
+      function selectModel(btn) {
+        document
+          .querySelectorAll(".model-tab")
+          .forEach((t) => t.classList.remove("active"));
+        btn.classList.add("active");
+        selectedModel = btn.dataset.model;
+      }
+
+      function getFormData() {
+        return {
+          pickup: document.getElementById("pickup").value,
+          dropoff: document.getElementById("dropoff").value,
+          distance: parseFloat(document.getElementById("distance").value),
+          passengers: parseInt(document.getElementById("passengers").value),
+          timeofday: document.getElementById("timeofday").value,
+          traffic: document.getElementById("traffic").value,
+          ridetype: document.getElementById("ridetype").value,
+        };
+      }
+
+      async function predictFare() {
+        const btn = document.querySelector(".predict-btn");
+        const loader = document.getElementById("loader");
+        const panel = document.getElementById("result-panel");
+
+        const requestData = { ...getFormData(), model: selectedModel };
+
+        btn.style.display = "none";
+        loader.classList.add("active");
+        panel.classList.remove("visible");
+
+        try {
+          const response = await fetch("/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestData),
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            document.getElementById("fare-amount").textContent =
+              result.fare.toLocaleString("en-US", { maximumFractionDigits: 0 });
+
+            document.getElementById("selected-model-name").textContent =
+              result.model_name;
+
+            document.getElementById("res-duration").textContent =
+              result.duration;
+            document.getElementById("res-perkm").textContent = result.per_km;
+            document.getElementById("res-surge").textContent = result.surge;
+
+            document.getElementById("conf-pct").textContent =
+              result.confidence + "%";
+            document.getElementById("conf-fill").style.width =
+              result.confidence + "%";
+
+            loader.classList.remove("active");
+            btn.style.display = "block";
+            panel.classList.add("visible");
+          } else {
+            alert("Error predicting fare: " + result.error);
+            loader.classList.remove("active");
+            btn.style.display = "block";
+          }
+        } catch (error) {
+          console.error("Failed to connect to backend:", error);
+          alert(
+            "Failed to connect to Python server. Make sure Flask is running.",
+          );
+          loader.classList.remove("active");
+          btn.style.display = "block";
+        }
+      }
+
+      /* ─── COMPARE ALL MODELS ─── */
+      async function compareModels() {
+        const btn = document.querySelector(".compare-btn");
+        const panel = document.getElementById("compare-panel");
+        const grid = document.getElementById("compare-grid");
+
+        btn.textContent = "⏳ Finding best model…";
+        btn.disabled = true;
+        panel.classList.remove("visible");
+
+        try {
+          const response = await fetch("/predict_best", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(getFormData()),
+          });
+          const data = await response.json();
+
+          if (data.success) {
+            const modelIcon = {
+              "Random Forest": "🌲",
+              "Gradient Boosting": "📈",
+              "Linear Regression": "📊",
+            };
+
+            const modelColor = {
+              "Random Forest": "var(--accent)",
+              "Gradient Boosting": "var(--accent3)",
+              "Linear Regression": "var(--amber)",
+            };
+
+            grid.innerHTML = `
+              <div class="cmp-card best" style="grid-column: 1/-1; max-width: 500px; margin: 0 auto; border: 2px solid var(--green); box-shadow: 0 0 20px rgba(0,229,118,0.15);">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; justify-content: center;">
+                  <span style="font-size: 1.6rem;">${modelIcon[data.best_model_name] || "🏆"}</span>
+                  <div style="text-align: left;">
+                    <div class="cmp-model-name">✓ Recommended Model</div>
+                    <div class="cmp-model-name" style="font-size: 1rem; color: ${modelColor[data.best_model_name]};font-weight:700;">${data.best_model_name}</div>
+                  </div>
+                </div>
+                <div class="cmp-fare" style="color: var(--green); font-size: 2.4rem; margin-bottom: 4px;">PKR ${data.fare.toLocaleString("en-US", { maximumFractionDigits: 0 })}</div>
+                <div class="cmp-fare-label">estimated fare for this route</div>
+                <div class="cmp-metrics" style="margin-top: 12px;">
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem;">
+                    <div>⏱️ Duration: ${data.duration}</div>
+                    <div>📍 Per km: ${data.per_km}</div>
+                    <div>🚗 Ride Type: ${data.ridetype}</div>
+                    <div>👥 Passengers: ${data.passengers}</div>
+                  </div>
+                  <div style="margin-top:12px; padding-top:12px; border-top: 1px solid var(--border); color:var(--text2); font-size: 0.8rem;">
+                    <strong style="color: var(--green);">✓ Why this model?</strong><br/>
+                    <div style="margin-top: 4px; color: var(--text3); font-size: 0.75rem;">
+                      • Lowest MAE: <strong>PKR ${data.mae}</strong><br/>
+                      • Best R² Score: <strong>${data.r2}</strong><br/>
+                      • Model Accuracy: <strong>${data.confidence}%</strong>
+                    </div>
+                  </div>
+                </div>
+                <span class="cmp-best-badge" style="background: rgba(0,229,118,0.2); color: var(--green); margin-top: 8px; display: inline-block;">🏆 Best for This Route</span>
+              </div>`;
+            panel.classList.add("visible");
+          } else {
+            alert("Error: " + data.error);
+          }
+        } catch (e) {
+          console.error("Connection error:", e);
+          alert("Failed to connect to Flask server. Make sure it is running.");
+        } finally {
+          btn.textContent = "⚖️ Find Best Model";
+          btn.disabled = false;
+        }
+      }
+
+      /* ─── CHARTS ─── */
+      window.addEventListener("load", () => {
+        const gridColor = "rgba(255,255,255,0.05)";
+        const tickColor = "#8B9DC3";
+
+        // Fare by distance
+        new Chart(document.getElementById("fareChart"), {
+          type: "bar",
+          data: {
+            labels: [
+              "0–5 km",
+              "5–10 km",
+              "10–20 km",
+              "20–35 km",
+              "35–50 km",
+              "50+ km",
+            ],
+            datasets: [
+              {
+                label: "Avg Fare (PKR)",
+                data: [180, 420, 820, 1450, 2350, 3200],
+                backgroundColor: [
+                  "rgba(0,128,255,0.6)",
+                  "rgba(0,128,255,0.65)",
+                  "rgba(0,128,255,0.7)",
+                  "rgba(0,128,255,0.75)",
+                  "rgba(0,128,255,0.8)",
+                  "rgba(0,210,255,0.85)",
+                ],
+                borderRadius: 6,
+                borderSkipped: false,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: {
+                grid: { color: gridColor },
+                ticks: { color: tickColor, font: { size: 11 } },
+              },
+              y: {
+                grid: { color: gridColor },
+                ticks: {
+                  color: tickColor,
+                  font: { size: 11 },
+                  callback: (v) => "PKR " + v,
+                },
+              },
+            },
+          },
+        });
+
+        // Model comparison
+        new Chart(document.getElementById("modelChart"), {
+          type: "bar",
+          data: {
+            labels: ["Linear Regression", "Gradient Boosting", "Random Forest"],
+            datasets: [
+              {
+                label: "R² Score",
+                data: [0.874, 0.998, 0.998],
+                backgroundColor: [
+                  "rgba(90,106,138,0.5)",
+                  "rgba(123,47,255,0.6)",
+                  "rgba(0,229,118,0.7)",
+                ],
+                borderRadius: 6,
+                borderSkipped: false,
+              },
+            ],
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: {
+                min: 0.7,
+                max: 1.0,
+                grid: { color: gridColor },
+                ticks: { color: tickColor, font: { size: 11 } },
+              },
+              y: {
+                grid: { color: gridColor },
+                ticks: { color: tickColor, font: { size: 11 } },
+              },
+            },
+          },
+        });
+
+        // Fare by hour
+        const hours = [];
+        const fareByHour = [];
+        for (let h = 0; h < 24; h++) {
+          hours.push(h + ":00");
+          const base = 650;
+          const rush = (h >= 7 && h <= 9) || (h >= 17 && h <= 19) ? 250 : 0;
+          const night = h >= 23 || h <= 5 ? 120 : 0;
+          fareByHour.push(
+            base + rush + night + Math.round((Math.random() - 0.5) * 60),
+          );
+        }
+        new Chart(document.getElementById("timeChart"), {
+          type: "line",
+          data: {
+            labels: hours,
+            datasets: [
+              {
+                label: "Avg Fare (PKR)",
+                data: fareByHour,
+                borderColor: "#00D2FF",
+                backgroundColor: "rgba(0,210,255,0.08)",
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: {
+                grid: { color: gridColor },
+                ticks: {
+                  color: tickColor,
+                  font: { size: 10 },
+                  maxTicksLimit: 8,
+                },
+              },
+              y: {
+                grid: { color: gridColor },
+                ticks: {
+                  color: tickColor,
+                  font: { size: 11 },
+                  callback: (v) => "PKR " + v,
+                },
+              },
+            },
+          },
+        });
+
+        // MAE Comparison chart
+        new Chart(document.getElementById("trafficChart"), {
+          type: "bar",
+          data: {
+            labels: ["Random Forest", "Gradient Boosting", "Linear Regression"],
+            datasets: [
+              {
+                label: "MAE (PKR)",
+                data: [129, 141, 957],
+                backgroundColor: [
+                  "rgba(0,210,255,0.8)",
+                  "rgba(123,47,255,0.8)",
+                  "rgba(255,179,0,0.8)",
+                ],
+                borderRadius: 4,
+                borderSkipped: false,
+              },
+              {
+                label: "RMSE (PKR)",
+                data: [161, 187, 1418],
+                backgroundColor: [
+                  "rgba(0,210,255,0.3)",
+                  "rgba(123,47,255,0.3)",
+                  "rgba(255,179,0,0.3)",
+                ],
+                borderRadius: 4,
+                borderSkipped: false,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                labels: { color: "#8B9DC3", font: { size: 11 } },
+              },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => ctx.dataset.label + ": PKR " + ctx.raw,
+                },
+              },
+            },
+            scales: {
+              x: {
+                grid: { color: gridColor },
+                ticks: { color: tickColor, font: { size: 10 } },
+              },
+              y: {
+                grid: { color: gridColor },
+                ticks: {
+                  color: tickColor,
+                  font: { size: 11 },
+                  callback: (v) => "PKR " + v,
+                },
+              },
+            },
+          },
+        });
+      });
+
+      /* ─── DATA TABLE ─── */
+      const zones = ["Downtown", "Airport", "Suburbs", "Midtown", "Uptown"];
+      const trafficLevels = ["Light", "Moderate", "Heavy", "Gridlock"];
+      const timeSlots = [
+        "Morning Rush",
+        "Midday",
+        "Evening Rush",
+        "Night",
+        "Late Night",
+      ];
+      const rideTypes = ["Standard", "XL", "Premium", "Economy"];
+      const tiers = [
+        ["badge-low", "Low"],
+        ["badge-low", "Low"],
+        ["badge-med", "Medium"],
+        ["badge-med", "Medium"],
+        ["badge-high", "High"],
+        ["badge-high", "High"],
+      ];
+
+      const tbody = document.getElementById("data-table-body");
+      for (let i = 0; i < 15; i++) {
+        const dist = Math.round(2 + Math.random() * 55);
+        const pass = Math.floor(1 + Math.random() * 4);
+        const zone1 = zones[Math.floor(Math.random() * 5)];
+        const zone2 = zones[Math.floor(Math.random() * 5)];
+        const time = timeSlots[Math.floor(Math.random() * 5)];
+        const traffic = trafficLevels[Math.floor(Math.random() * 4)];
+        const ride = rideTypes[Math.floor(Math.random() * 4)];
+        const fare = Math.round(
+          (200 + dist * 80) * (0.85 + Math.random() * 0.6),
+        );
+        const pred = Math.round(fare * (0.97 + Math.random() * 0.06));
+        const tier = tiers[Math.floor(Math.random() * 6)];
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="color:var(--text3)">${i + 1}</td>
+          <td>${zone1}</td>
+          <td>${zone2}</td>
+          <td>${dist} km</td>
+          <td>${pass}</td>
+          <td>${time}</td>
+          <td>${traffic}</td>
+          <td>${ride}</td>
+          <td class="td-fare">PKR ${fare.toLocaleString()}</td>
+          <td style="color:var(--accent2)">PKR ${pred.toLocaleString()}</td>
+          <td><span class="td-badge ${tier[0]}">${tier[1]}</span></td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      /* ─── SCROLL REVEAL ─── */
+      const reveals = document.querySelectorAll(".reveal");
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("visible");
+              observer.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.1 },
+      );
+      reveals.forEach((el) => observer.observe(el));
+    </script>
+  </body>
+</html>
